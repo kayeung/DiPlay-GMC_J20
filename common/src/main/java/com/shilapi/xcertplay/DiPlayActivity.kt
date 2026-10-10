@@ -3199,10 +3199,12 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 UsbPermissionSetup.Permission.ACCESSIBILITY -> R.string.usb_auto_confirm_title
                 UsbPermissionSetup.Permission.USAGE -> R.string.center_map_auto_hide
                 UsbPermissionSetup.Permission.OVERLAY -> R.string.btn_open_overlay_setting
+                UsbPermissionSetup.Permission.VPN -> R.string.vpn_consent_title
             })
             body.addView(label("$title: ${getString(if (granted) R.string.permission_enabled_ready else R.string.permission_not_enabled)}", 14, if (granted) MUTED else WARNING))
         }
         val adbCmd = UsbPermissionSetup.manualCommand(packageName)
+        val windowsCmd = UsbPermissionSetup.manualCommand(packageName, UsbPermissionSetup.Terminal.WINDOWS)
         body.addView(label(getString(R.string.manual_grant_cmd_hint), 14, MUTED).apply { setPadding(0, dp(12), 0, dp(6)) })
         body.addView(label(adbCmd, 13, TEXT).apply {
             typeface = Typeface.MONOSPACE
@@ -3213,6 +3215,20 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         body.addView(button(getString(R.string.copy_command), false) {
             getSystemService(android.content.ClipboardManager::class.java).setPrimaryClip(
                 android.content.ClipData.newPlainText("DiPlay ADB Command", adbCmd)
+            )
+            toast(getString(R.string.copied_to_the_car_clipboard_run_the_command_on_your_comput))
+        }, matchButton(8, 50))
+        // cmd.exe keeps single quotes literal, so the POSIX copy above cannot run there.
+        body.addView(label(getString(R.string.manual_grant_cmd_windows_hint), 14, MUTED).apply { setPadding(0, dp(12), 0, dp(6)) })
+        body.addView(label(windowsCmd, 13, TEXT).apply {
+            typeface = Typeface.MONOSPACE
+            setTextIsSelectable(true)
+            setPadding(dp(8), dp(8), dp(8), dp(8))
+            setBackgroundColor(BUTTON)
+        })
+        body.addView(button(getString(R.string.copy_command), false) {
+            getSystemService(android.content.ClipboardManager::class.java).setPrimaryClip(
+                android.content.ClipData.newPlainText("DiPlay ADB Command (cmd)", windowsCmd)
             )
             toast(getString(R.string.copied_to_the_car_clipboard_run_the_command_on_your_comput))
         }, matchButton(8, 50))

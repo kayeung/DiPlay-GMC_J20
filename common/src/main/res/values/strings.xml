@@ -431,6 +431,7 @@
     <string name="use_software_hevc_decoder">Use software HEVC decoder</string>
     <string name="use_usage_content_type_routing_instead_of_stream_type">Use usage / content-type routing instead of stream type</string>
     <string name="use_your_last_connection_type_and_selected_iphone">Use your last connection type and selected iPhone.</string>
+    <string name="vpn_consent_title">VPN permission (wired CarPlay)</string>
     <string name="vpn_authorization_unavailable">This head unit cannot open VPN authorization. Return to DiPlay to check connection permissions or use wireless.</string>
     <string name="vpn_consent_was_denied">VPN consent was denied</string>
     <string name="waiting_for_iphone_over_usb">Waiting for iPhone over USB</string>
@@ -624,6 +625,7 @@
     <string name="btn_open_accessibility_setting">Open System Accessibility Settings</string>
     <string name="btn_open_overlay_setting">Open System Overlay Settings</string>
     <string name="manual_grant_cmd_hint">Or run this ADB command from your computer:</string>
+    <string name="manual_grant_cmd_windows_hint">If that one fails (Windows Command Prompt does not accept single quotes), use this command instead:</string>
     <string name="adb_cluster_activity_label">Cluster Map</string>
     <string name="adb_cluster_activity_mode">DiLink 4 cluster video via ADB (experimental)</string>
     <string name="adb_cluster_activity_description">Launch the map directly on the verified cluster display through internal ADB. Authorize ADB, then reconnect the iPhone.</string>

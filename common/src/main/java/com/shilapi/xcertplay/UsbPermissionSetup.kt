@@ -4,6 +4,7 @@ import android.content.Context
 import android.provider.Settings
 import com.shilapi.xcertplay.adb.AdbKeys
 import com.shilapi.xcertplay.adb.LocalAdb
+import com.shilapi.xcertplay.network.CarPlayVpnService
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -12,7 +13,7 @@ internal object UsbPermissionSetup {
     // Keep wheel-service rebinding and explicit USB setup from overwriting each other's service list.
     internal val accessibilityLock = Any()
     enum class Permission {
-        ACCESSIBILITY, USAGE, OVERLAY;
+        ACCESSIBILITY, USAGE, OVERLAY, VPN;
 
         fun granted(context: Context): Boolean = runCatching {
             when (this) {
@@ -20,6 +21,12 @@ internal object UsbPermissionSetup {
                     Settings.Secure.getInt(context.contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED, 0) == 1
                 USAGE -> HomeScreenMonitor.hasAccess(context)
                 OVERLAY -> Settings.canDrawOverlays(context)
+                // Android 8 head units whose firmware ships the VPN consent dialog broken or missing
+                // reach the "VPN authorization unavailable" status and are told to check connection
+                // permissions here. Wired CarPlay still needs that authorization, so the one button that
+                // can deliver it must offer it: [CarPlayVpnService.prepare] returns null once the
+                // ACTIVATE_VPN app-op is allowed, and the dialog is never opened again.
+                VPN -> CarPlayVpnService.prepare(context) == null
             }
         }.getOrDefault(false)
     }
@@ -102,17 +109,32 @@ internal object UsbPermissionSetup {
     private fun withExitStatus(command: String): String =
         "( $command ); result=\$?; printf '\\n$EXIT_MARKER:%s\\n' \"\$result\""
 
-    private fun quote(value: String): String = "'" + value.replace("'", "'\\''") + "'"
+    /**
+     * Host terminal the copied command is pasted into. There is no single form every terminal
+     * accepts, so both are offered:
+     *
+     * - `cmd.exe` keeps single quotes literal and only double quotes start a quoted argument.
+     * - PowerShell expands `$current` inside double quotes and has no `&&` before 7.0.
+     *
+     * Both variants run the same device-side script; only the host-side quoting differs.
+     */
+    enum class Terminal { POSIX, WINDOWS }
 
-    /** Read and append in the device shell; neither path replaces the other enabled services. */
+    /**
+     * Device-side script for one permission.
+     *
+     * The package name is validated below and the service name is built from it, so neither is
+     * quoted here. An inner quote would have to be re-escaped once per host terminal, and the
+     * POSIX-only `'\''` form that produced made the copied command fail in `cmd.exe`.
+     */
     internal fun command(permission: Permission, packageName: String): String {
         require(Regex("[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+").matches(packageName))
-        val pkg = quote(packageName)
+        val service = "$packageName/com.shilapi.xcertplay.UsbAutoConfirmService"
         return when (permission) {
-            Permission.USAGE -> "appops set $pkg GET_USAGE_STATS allow"
-            Permission.OVERLAY -> "appops set $pkg SYSTEM_ALERT_WINDOW allow"
+            Permission.USAGE -> "appops set $packageName GET_USAGE_STATS allow"
+            Permission.OVERLAY -> "appops set $packageName SYSTEM_ALERT_WINDOW allow"
+            Permission.VPN -> "appops set $packageName ACTIVATE_VPN allow"
             Permission.ACCESSIBILITY -> {
-                val service = quote("$packageName/com.shilapi.xcertplay.UsbAutoConfirmService")
                 """current=${'$'}(settings get secure enabled_accessibility_services) || exit 1;
                     case "${'$'}current" in null|"") current="";; esac;
                     case "${'$'}current" in *[!a-zA-Z0-9_./:${'$'}]*) exit 1;; esac;
@@ -126,7 +148,24 @@ internal object UsbPermissionSetup {
         }
     }
 
-    fun manualCommand(packageName: String): String = Permission.entries.joinToString(" && ") {
-        "adb shell ${quote(command(it, packageName))}"
+    /** Command for sh/bash/zsh, an Android terminal or Windows PowerShell. */
+    fun manualCommand(packageName: String): String = manualCommand(packageName, Terminal.POSIX)
+
+    /**
+     * Command for [terminal]. Each permission is granted independently, so the statements are
+     * separated by `;` where the host understands it and `&&` where it does not.
+     */
+    fun manualCommand(packageName: String, terminal: Terminal): String {
+        val separator = if (terminal == Terminal.WINDOWS) " && " else " ; "
+        return Permission.entries.joinToString(separator) {
+            wrapForTerminal(command(it, packageName), terminal)
+        }
+    }
+
+    private fun wrapForTerminal(script: String, terminal: Terminal): String = when (terminal) {
+        Terminal.POSIX -> "adb shell '$script'"
+        // cmd.exe keeps the single quotes literal, so hand the script over inside double quotes and
+        // escape every inner double quote for adb's own argument parser.
+        Terminal.WINDOWS -> "adb shell \"" + script.replace("\"", "\\\"") + "\""
     }
 }

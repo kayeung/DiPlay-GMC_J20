@@ -392,6 +392,7 @@
     <string name="use_software_hevc_decoder">使用 HEVC 軟體解碼器</string>
     <string name="use_usage_content_type_routing_instead_of_stream_type">使用 usage / content-type 路由取代串流類型</string>
     <string name="use_your_last_connection_type_and_selected_iphone">使用上次的連線方式和已選擇的 iPhone。</string>
+    <string name="vpn_consent_title">VPN 權限（有線 CarPlay）</string>
     <string name="vpn_authorization_unavailable">此車機無法開啟 VPN 授權畫面。請返回 DiPlay 檢查連線權限，或使用無線連線。</string>
     <string name="vpn_consent_was_denied">VPN 授權遭拒</string>
     <string name="waiting_for_iphone_over_usb">正在等待透過 USB 連線的 iPhone</string>
@@ -709,6 +710,7 @@
     <string name="settings_fps_counter">FPS 計數器</string>
     <string name="settings_fps_counter_description">在 CarPlay 右上角顯示計數器：每秒顯示的幀數（50 以上為綠色，30 以上為黃色，低於 30 為紅色）、每秒從 iPhone 接收的幀數以及解碼時間。畫面靜止時幀數很少，因為 iPhone 不會傳送幀。</string>
     <string name="manual_grant_cmd_hint">或在電腦上執行以下 ADB 指令：</string>
+    <string name="manual_grant_cmd_windows_hint">如果上面那條執行錯誤（Windows 命令提示字元不支援單引號），請改用這條：</string>
     <string name="manual_grant_reason_adboff">此車機尚未啟用本機 ADB（連接埠 5555）。\n您可以在系統設定中手動啟用無障礙服務，或啟用網路 ADB。</string>
     <string name="retry_auto_grant">重試自動授權</string>
     <string name="side_panel">CarPlay 旁的側邊面板（實驗性）</string>

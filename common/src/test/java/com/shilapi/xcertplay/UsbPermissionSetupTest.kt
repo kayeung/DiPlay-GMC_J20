@@ -70,7 +70,7 @@ class UsbPermissionSetupTest {
         assertTrue(result.verified.getValue(UsbPermissionSetup.Permission.USAGE))
         assertFalse(result.verified.getValue(UsbPermissionSetup.Permission.ACCESSIBILITY))
         assertFalse(result.verified.getValue(UsbPermissionSetup.Permission.OVERLAY))
-        assertEquals(2, client.commands.size)
+        assertEquals(3, client.commands.size)
         assertFalse(result.complete)
     }
 
@@ -81,7 +81,7 @@ class UsbPermissionSetupTest {
         }
         val result = operation(client) { it in allowed }.run()
         assertTrue(result.complete)
-        assertEquals(3, client.commands.size)
+        assertEquals(4, client.commands.size)
     }
 
     @Test fun cancelBeforeClientCreationDoesNoWork() {
@@ -137,6 +137,29 @@ class UsbPermissionSetupTest {
         val script = shellFixture("other.package/.Service") +
             "\nadb() { shift; eval \"\$1\"; }; $command; printf '%s' \"\$saved\""
         assertEquals("other.package/.Service:$target", runShell(script).trim())
+    }
+
+    @Test fun posixCommandNeedsNoPosixOnlyQuoteEscapes() {
+        // The POSIX copy hands the script over inside single quotes, so it must not carry the '\''
+        // sequence that the quoted package and service names used to emit.
+        val command = UsbPermissionSetup.manualCommand(context.packageName, UsbPermissionSetup.Terminal.POSIX)
+        assertFalse(command.contains("'\\''"))
+        assertTrue(command.contains("adb shell '"))
+        assertTrue(command.contains("service=${context.packageName}/com.shilapi.xcertplay.UsbAutoConfirmService"))
+    }
+
+    @Test fun windowsCommandUsesCmdQuotingAndGrantsTheSamePermissions() {
+        // cmd.exe keeps single quotes literal, so the Windows copy must avoid them entirely and hand
+        // the script over inside double quotes with the inner ones escaped for adb.
+        val command = UsbPermissionSetup.manualCommand(context.packageName, UsbPermissionSetup.Terminal.WINDOWS)
+        assertFalse(command.contains("'"))
+        assertTrue(command.contains("adb shell \""))
+        assertTrue(command.contains("\\\"\$current\\\""))
+        assertTrue(command.contains(" && adb shell "))
+        assertTrue(command.contains("settings get secure enabled_accessibility_services"))
+        assertTrue(command.contains("GET_USAGE_STATS allow"))
+        assertTrue(command.contains("SYSTEM_ALERT_WINDOW allow"))
+        assertTrue(command.contains("ACTIVATE_VPN allow"))
     }
 
     @Test fun progressCancelUnblocksWorkerAndSuppressesLateDialogs() = cancelledUiAttempt {

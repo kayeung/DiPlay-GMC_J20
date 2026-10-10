@@ -393,6 +393,7 @@
     <string name="use_software_hevc_decoder">使用 HEVC 软件解码器</string>
     <string name="use_usage_content_type_routing_instead_of_stream_type">使用 usage / content-type 路由代替流类型</string>
     <string name="use_your_last_connection_type_and_selected_iphone">使用上次的连接方式和已选 iPhone。</string>
+    <string name="vpn_consent_title">VPN 权限（有线 CarPlay）</string>
     <string name="vpn_authorization_unavailable">此车机无法打开 VPN 授权界面。请返回 DiPlay 检查连接权限，或使用无线连接。</string>
     <string name="vpn_consent_was_denied">VPN 授权被拒绝</string>
     <string name="waiting_for_iphone_over_usb">正在等待 USB 连接的 iPhone</string>
@@ -587,6 +588,7 @@
     <string name="btn_open_accessibility_setting">前往系统设置开启【无障碍服务】</string>
     <string name="btn_open_overlay_setting">前往开启【显示在其他应用上层】</string>
     <string name="manual_grant_cmd_hint">或在电脑终端执行以下 ADB 命令一键授权：</string>
+    <string name="manual_grant_cmd_windows_hint">如果上面那条执行报错（Windows 命令提示符不支持单引号），请改用这条：</string>
     <string name="adb_cluster_activity_label">仪表地图</string>
     <string name="adb_cluster_activity_mode">DiLink 4 仪表视频（ADB，实验性）</string>
     <string name="adb_cluster_activity_description">通过内置ADB直接在已验证仪表副屏启动地图。请先授权ADB，再重新连接iPhone。</string>
