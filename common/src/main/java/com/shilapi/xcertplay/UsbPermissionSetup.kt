@@ -83,7 +83,12 @@ internal object UsbPermissionSetup {
                         if (granted(permission)) continue
                         val command = command(permission, context.packageName)
                         if (isCancelled) break
-                        val output = adb.shell(withExitStatus(command))
+                        // These app ops and settings writes are routed through system_server, which
+                        // some Android 8 firmware forbids using the adb shell's descriptors; see
+                        // [AdbPermissiveGrant].
+                        val output = AdbPermissiveGrant.run(shell = { line -> adb.shell(line) }) {
+                            adb.shell(withExitStatus(command))
+                        }
                         if (isCancelled) break
                         if (output?.lineSequence()?.lastOrNull() != "$EXIT_MARKER:0") failed += permission
                     }

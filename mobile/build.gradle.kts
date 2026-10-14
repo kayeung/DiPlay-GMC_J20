@@ -39,8 +39,9 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".hudtest"
-            versionNameSuffix = "-hud-test"
+            // Keep the official application id, so one set of grant commands works for this build
+            // and for later official releases of the same package.
+            versionNameSuffix = "-fix"
         }
         release {
             optimization {

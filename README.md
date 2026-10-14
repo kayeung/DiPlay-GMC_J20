@@ -10,6 +10,16 @@
 
 ![DiPlay home](site/assets/home.png)
 
+> ### This fork: GAC MSM8996 (Android 8.1) adaptation — 0.2.19 fix build
+>
+> Built on upstream **0.2.19** for one vehicle: a **GAC MSM8996 head unit on Android 8.1 (API 27)** whose firmware runs `adbd` as root and ships a SELinux policy that never allowed `system_server` to use a descriptor owned by that domain. Every `appops` / `settings` / `pm` command sent over the car's own ADB therefore failed while SELinux was enforcing, which is why the in-app permission setup could never complete on this head unit.
+>
+> - **[Car-unit adaptation notes](docs/CAR-UNIT-NOTES.md)** (written in Chinese) — the head unit's hardware and firmware, the crash behind the wired-mode force-close, the fd denial above, and every change made for it.
+> - `AdbPermissiveGrant` performs the grants inside a very short permissive window that is closed again in a separate command. It opens only when a permission is missing, and only when the device was already enforcing; every other device is untouched.
+> - Wired CarPlay grants `ACTIVATE_VPN` by itself when it starts (the upstream 0.2.18 ADB path), and **Settings → USB permission setup** completes on this head unit.
+> - The debug variant keeps the **official application id `com.shihab.diplay`** and is labelled **DiPlay 修复版**, so one set of ADB grant commands works for this build and for later official releases of the same package.
+> - Build: `DIPLAY_AUTH_ASSETS_DIR=<dir containing offline-mfi/identity.pk8 and certificate.p7b> ./gradlew :mobile:assembleStandaloneDebug`. The runtime authentication assets are not part of the source tree.
+
 ## 0.2.19 — public preview
 
 Install on the **car**, not the iPhone. No jailbreak, dongle, Mac, account or authentication server is required for use. Core CarPlay does not require ADB; optional dashboard, battery, wheel-speed and parked-video features do. Your head unit must permit APK installation. The APK supports Android 7.1+ (API 25); Android 7.1–8.1 support is not yet confirmed on a vehicle. Wireless supports Wi-Fi Direct, the car’s existing hotspot or Existing Wi-Fi / Same LAN. Android 7.1–9 Wi-Fi Direct uses a firmware-dependent legacy path with generated group credentials and unverified requested frequency; see [Android 9 Wi-Fi Direct](docs/ANDROID9_WIFI_DIRECT.md). Android 10+ verifies its negotiated group frequency.
